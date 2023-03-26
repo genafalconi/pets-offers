@@ -6,19 +6,18 @@ import { OffersService } from './offers.service';
 @UseGuards(FirebaseAuthGuard)
 @Controller('offers')
 export class OffersController {
-
   constructor(
     @Inject(OffersService)
-    private readonly offersService: OffersService
-  ) { }
+    private readonly offersService: OffersService,
+  ) {}
 
   @Post('/new')
   async createOffers(): Promise<DocumentData> {
-    return await this.offersService.createOffers()
+    return await this.offersService.createOffers();
   }
 
   @Get('/open')
   async getOpenOffers(): Promise<DocumentData> {
-    return await this.offersService.getOpenOffers()
+    return await this.offersService.getOpenOffers();
   }
 }
