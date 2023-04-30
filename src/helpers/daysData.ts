@@ -1,8 +1,8 @@
 export default class DaysData {
   private days = [
-    { isOpen: true, weekday: 'lunes', date: '', hours: '14-20' },
-    { isOpen: true, weekday: 'miercoles', date: '', hours: '14-20' },
-    { isOpen: true, weekday: 'viernes', date: '', hours: '14-20' },
+    { open: true, weekday: 'lunes', date: '', hours: '14-20' },
+    { open: true, weekday: 'miercoles', date: '', hours: '14-20' },
+    { open: true, weekday: 'viernes', date: '', hours: '14-20' },
   ];
 
   getNextDates() {
@@ -38,17 +38,25 @@ export default class DaysData {
 
   getNextDaysData() {
     const nextDays = this.getNextDates();
+    const today = new Date();
+    const todayString = today.toISOString().slice(0, 10);
     this.days.map((elem) => {
       if (elem.weekday === 'lunes') {
-        elem.date = nextDays.monday;
+        if (elem.date !== todayString) {
+          elem.date = nextDays.monday;
+        }
       }
       if (elem.weekday === 'miercoles') {
-        elem.date = nextDays.wednesday;
+        if (elem.date !== todayString) {
+          elem.date = nextDays.wednesday;
+        }
       }
       if (elem.weekday === 'viernes') {
-        elem.date = nextDays.friday;
+        if (elem.date !== todayString) {
+          elem.date = nextDays.friday;
+        }
       }
     });
-    return this.days;
+    return this.days.filter((elem) => elem.date !== todayString);
   }
 }

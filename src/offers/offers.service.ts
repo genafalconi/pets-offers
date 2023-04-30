@@ -1,47 +1,49 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
-import {
-  CollectionReference,
-  DocumentData,
-  QuerySnapshot,
-} from 'firebase-admin/firestore';
-import { CronExpression } from '@nestjs/schedule';
-import dateFormat from 'src/helpers/dateFormat';
-import { firebaseFirestore } from 'src/firebase/firebase.app';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import DaysData from 'src/helpers/daysData';
+import { InjectModel } from '@nestjs/mongoose';
+import { Offer } from 'src/schemas/offers.schema';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class OffersService {
-  private offersCollection: CollectionReference;
-
   constructor(
     @Inject(DaysData)
     private readonly daysData: DaysData,
-  ) {
-    this.offersCollection = firebaseFirestore.collection('offer');
-  }
+    @InjectModel(Offer.name)
+    private readonly offerModel: Model<Offer>
+  ) { }
 
   private readonly logger = new Logger();
 
-  // @Cron(CronExpression.EVERY_SECOND)
-  async createOffers(): Promise<DocumentData> {
+  @Cron('0 14 * * 5')
+  async createOffers(): Promise<Offer[]> {
     const todayDate = new Date();
-    const offersSaved: Array<DocumentData> = [];
+    const offersSaved: Offer[] = [];
     const dateToSearch = todayDate.toISOString().slice(0, 10);
+    const timeToSearch = todayDate.toLocaleTimeString().slice(0, 2)
 
-    const offerDoc = await this.offersCollection
-      .where('date', '>=', dateToSearch)
-      .get();
+    const offerDocs = await this.offerModel.find({
+      $or: [
+        { date: { $gt: dateToSearch } },
+        {
+          date: dateToSearch,
+          $expr: {
+            $gte: [
+              { $toInt: { $arrayElemAt: [{ $split: ['$hours', '-'] }, 0] } },
+              parseInt(timeToSearch)
+            ]
+          }
+        }
+      ]
+    });
 
-    if (offerDoc.empty) {
+    if (offerDocs.length === 0) {
       const newDays = this.daysData.getNextDaysData();
       const newDaysPromise = newDays.map(async (elem) => {
-        const offerWeek = this.offersCollection.doc();
-        await offerWeek.set(Object.assign({}, elem));
-
-        const offerSaved = await offerWeek.get();
-        const offerData = offerSaved.data();
-        offersSaved.push(offerData);
+        const offerWeek = new this.offerModel(elem);
+        const offerSaved = await offerWeek.save();
+        offersSaved.push(offerSaved);
       });
       await Promise.all(newDaysPromise);
 
@@ -49,28 +51,75 @@ export class OffersService {
       return offersSaved;
     }
 
-    return offerDoc.docs.map((elem) => elem.data());
+    return offerDocs;
   }
 
-  async getOpenOffers(): Promise<DocumentData> {
+  async getOpenOffers(): Promise<Offer[]> {
+    const activeOffers: Offer[] = []
+
     const todayDate = new Date();
     const dateToSearch = todayDate.toISOString().slice(0, 10);
+    const timeToSearch = todayDate.toLocaleTimeString().slice(0, 2);
 
-    const offerDoc = await this.offersCollection
-      .where('date', '>=', dateToSearch)
-      .get();
+    const offerDocs = await this.offerModel.find({
+      $or: [
+        { date: { $gt: dateToSearch } },
+        {
+          date: dateToSearch,
+          $expr: {
+            $gte: [
+              { $toInt: { $arrayElemAt: [{ $split: ['$hours', '-'] }, 0] } },
+              parseInt(timeToSearch)
+            ]
+          }
+        }
+      ]
+    }).sort({ date: 1 })
 
-    if (!offerDoc.empty) {
-      return offerDoc.docs.map((elem) => {
-        const offer = elem.data();
-        return { ...offer, id: elem.id };
-      });
+    for (let offer of offerDocs) {
+      if (todayDate.toISOString().slice(0, 10) === new Date(offer.date).toISOString().slice(0, 10)) {
+        if (offer.hours.slice(0, 2) > todayDate.getHours().toString()) {
+          activeOffers.push(offer)
+        }
+      } else {
+        activeOffers.push(offer)
+      }
     }
-    return [];
+    await this.disablePastOffers()
+    return activeOffers;
   }
 
-  async getOrderAddress(addressId: string): Promise<DocumentData> {
-    const offerDoc = await this.offersCollection.doc(addressId).get();
-    return offerDoc.data();
+  async getOrderAddress(addressId: string): Promise<Offer> {
+    const offerDoc = await this.offerModel.findById(addressId);
+    return offerDoc;
+  }
+
+  // @Cron(CronExpression.EVERY_DAY_AT_9PM)
+  async disablePastOffers() {
+    const todayDate = new Date();
+    const dateToSearch = todayDate.toISOString().slice(0, 10);
+    const timeToSearch = todayDate.toLocaleTimeString().slice(0, 2);
+
+    const offerDocs = await this.offerModel.find({
+      $or: [
+        { date: { $lt: dateToSearch } },
+        {
+          date: dateToSearch,
+          $expr: {
+            $lt: [
+              { $toInt: { $arrayElemAt: [{ $split: ['$hours', '-'] }, 0] } },
+              parseInt(timeToSearch)
+            ]
+          }
+        }
+      ]
+    })
+
+    for (let offer of offerDocs) {
+      await this.offerModel.updateOne(
+        { _id: offer._id },
+        { $set: { open: false } }
+      );
+    }
   }
 }
