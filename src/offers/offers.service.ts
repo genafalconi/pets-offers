@@ -11,8 +11,8 @@ export class OffersService {
     @Inject(DaysData)
     private readonly daysData: DaysData,
     @InjectModel(Offer.name)
-    private readonly offerModel: Model<Offer>
-  ) { }
+    private readonly offerModel: Model<Offer>,
+  ) {}
 
   private readonly logger = new Logger();
 
@@ -21,7 +21,7 @@ export class OffersService {
     const todayDate = new Date();
     const offersSaved: Offer[] = [];
     const dateToSearch = todayDate.toISOString().slice(0, 10);
-    const timeToSearch = todayDate.toLocaleTimeString().slice(0, 2)
+    const timeToSearch = todayDate.toLocaleTimeString().slice(0, 2);
 
     const offerDocs = await this.offerModel.find({
       $or: [
@@ -31,11 +31,11 @@ export class OffersService {
           $expr: {
             $gte: [
               { $toInt: { $arrayElemAt: [{ $split: ['$hours', '-'] }, 0] } },
-              parseInt(timeToSearch)
-            ]
-          }
-        }
-      ]
+              parseInt(timeToSearch),
+            ],
+          },
+        },
+      ],
     });
 
     if (offerDocs.length === 0) {
@@ -55,37 +55,42 @@ export class OffersService {
   }
 
   async getOpenOffers(): Promise<Offer[]> {
-    const activeOffers: Offer[] = []
+    const activeOffers: Offer[] = [];
 
     const todayDate = new Date();
     const dateToSearch = todayDate.toISOString().slice(0, 10);
     const timeToSearch = todayDate.toLocaleTimeString().slice(0, 2);
 
-    const offerDocs = await this.offerModel.find({
-      $or: [
-        { date: { $gt: dateToSearch } },
-        {
-          date: dateToSearch,
-          $expr: {
-            $gte: [
-              { $toInt: { $arrayElemAt: [{ $split: ['$hours', '-'] }, 0] } },
-              parseInt(timeToSearch)
-            ]
-          }
-        }
-      ]
-    }).sort({ date: 1 })
+    const offerDocs = await this.offerModel
+      .find({
+        $or: [
+          { date: { $gt: dateToSearch } },
+          {
+            date: dateToSearch,
+            $expr: {
+              $gte: [
+                { $toInt: { $arrayElemAt: [{ $split: ['$hours', '-'] }, 0] } },
+                parseInt(timeToSearch),
+              ],
+            },
+          },
+        ],
+      })
+      .sort({ date: 1 });
 
-    for (let offer of offerDocs) {
-      if (todayDate.toISOString().slice(0, 10) === new Date(offer.date).toISOString().slice(0, 10)) {
+    for (const offer of offerDocs) {
+      if (
+        todayDate.toISOString().slice(0, 10) ===
+        new Date(offer.date).toISOString().slice(0, 10)
+      ) {
         if (offer.hours.slice(0, 2) > todayDate.getHours().toString()) {
-          activeOffers.push(offer)
+          activeOffers.push(offer);
         }
       } else {
-        activeOffers.push(offer)
+        activeOffers.push(offer);
       }
     }
-    await this.disablePastOffers()
+    await this.disablePastOffers();
     return activeOffers;
   }
 
@@ -108,17 +113,17 @@ export class OffersService {
           $expr: {
             $lt: [
               { $toInt: { $arrayElemAt: [{ $split: ['$hours', '-'] }, 0] } },
-              parseInt(timeToSearch)
-            ]
-          }
-        }
-      ]
-    })
+              parseInt(timeToSearch),
+            ],
+          },
+        },
+      ],
+    });
 
-    for (let offer of offerDocs) {
+    for (const offer of offerDocs) {
       await this.offerModel.updateOne(
         { _id: offer._id },
-        { $set: { open: false } }
+        { $set: { open: false } },
       );
     }
   }

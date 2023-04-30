@@ -7,7 +7,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: `env/${process.env.NODE_ENV || 'dev'}.env`
+      envFilePath: `env/${process.env.NODE_ENV || 'dev'}.env`,
     }),
     MongooseModule.forRootAsync({
       useFactory: async () => ({
@@ -17,9 +17,9 @@ import { ScheduleModule } from '@nestjs/schedule';
       }),
     }),
     OffersModule,
-    ScheduleModule.forRoot()
+    ScheduleModule.forRoot(),
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule { }
+export class AppModule {}
