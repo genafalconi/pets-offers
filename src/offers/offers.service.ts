@@ -16,7 +16,7 @@ export class OffersService {
 
   private readonly logger = new Logger();
 
-  @Cron('0 14 * * 5')
+  @Cron('0 20 * * 4')
   async createOffers(): Promise<Offer[]> {
     const todayDate = new Date();
     const offersSaved: Offer[] = [];
@@ -66,7 +66,7 @@ export class OffersService {
         $or: [
           { date: { $gt: dateToSearch } },
           {
-            date: dateToSearch,
+            date: dateToSearch, 
             $expr: {
               $gte: [
                 { $toInt: { $arrayElemAt: [{ $split: ['$hours', '-'] }, 0] } },
@@ -90,7 +90,7 @@ export class OffersService {
         activeOffers.push(offer);
       }
     }
-    await this.disablePastOffers();
+    
     return activeOffers;
   }
 
@@ -99,7 +99,7 @@ export class OffersService {
     return offerDoc;
   }
 
-  // @Cron(CronExpression.EVERY_DAY_AT_9PM)
+  @Cron(CronExpression.EVERY_DAY_AT_9PM)
   async disablePastOffers() {
     const todayDate = new Date();
     const dateToSearch = todayDate.toISOString().slice(0, 10);
