@@ -7,7 +7,10 @@ export class Offer extends Document {
   date: Date;
 
   @Prop({ required: true })
-  hours: string;
+  from: number;
+
+  @Prop({ required: true })
+  to: number;
 
   @Prop({ required: true })
   open: boolean;

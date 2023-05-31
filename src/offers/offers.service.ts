@@ -12,9 +12,7 @@ export class OffersService {
     private readonly daysData: DaysData,
     @InjectModel(Offer.name)
     private readonly offerModel: Model<Offer>,
-  ) {}
-
-  private readonly logger = new Logger();
+  ) { }
 
   @Cron('0 20 * * 4')
   async createOffers(): Promise<Offer[]> {
@@ -28,14 +26,9 @@ export class OffersService {
         { date: { $gt: dateToSearch } },
         {
           date: dateToSearch,
-          $expr: {
-            $gte: [
-              { $toInt: { $arrayElemAt: [{ $split: ['$hours', '-'] }, 0] } },
-              parseInt(timeToSearch),
-            ],
-          },
-        },
-      ],
+          from: { $gt: timeToSearch }
+        }
+      ]
     });
 
     if (offerDocs.length === 0) {
@@ -55,8 +48,6 @@ export class OffersService {
   }
 
   async getOpenOffers(): Promise<Offer[]> {
-    const activeOffers: Offer[] = [];
-
     const todayDate = new Date();
     const dateToSearch = todayDate.toISOString().slice(0, 10);
     const timeToSearch = todayDate.toLocaleTimeString().slice(0, 2);
@@ -66,32 +57,14 @@ export class OffersService {
         $or: [
           { date: { $gt: dateToSearch } },
           {
-            date: dateToSearch, 
-            $expr: {
-              $gte: [
-                { $toInt: { $arrayElemAt: [{ $split: ['$hours', '-'] }, 0] } },
-                parseInt(timeToSearch),
-              ],
-            },
+            date: dateToSearch,
+            from: { $gt: timeToSearch }
           },
-        ],
+        ]
       })
       .sort({ date: 1 });
 
-    for (const offer of offerDocs) {
-      if (
-        todayDate.toISOString().slice(0, 10) ===
-        new Date(offer.date).toISOString().slice(0, 10)
-      ) {
-        if (offer.hours.slice(0, 2) > todayDate.getHours().toString()) {
-          activeOffers.push(offer);
-        }
-      } else {
-        activeOffers.push(offer);
-      }
-    }
-    
-    return activeOffers;
+    return offerDocs;
   }
 
   async getOrderAddress(addressId: string): Promise<Offer> {
@@ -110,14 +83,9 @@ export class OffersService {
         { date: { $lt: dateToSearch } },
         {
           date: dateToSearch,
-          $expr: {
-            $lt: [
-              { $toInt: { $arrayElemAt: [{ $split: ['$hours', '-'] }, 0] } },
-              parseInt(timeToSearch),
-            ],
-          },
-        },
-      ],
+          from: { $lt: timeToSearch }
+        }
+      ]
     });
 
     for (const offer of offerDocs) {
