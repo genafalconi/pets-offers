@@ -26,5 +26,5 @@ jobs:
         if: ${{ env.CI == 'true' }}
         env:
           FIREBASE_TOKEN: ${{ secrets.SERVICE_ACCOUNT }}
-          run: npx firebase-tools deploy --only functions:offers --project petszone-arg
+        run: npx firebase-tools deploy --only functions:offers --project petszone-arg
 
