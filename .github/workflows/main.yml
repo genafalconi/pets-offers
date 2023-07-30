@@ -28,4 +28,4 @@ jobs:
 
       - name: Deploy Function
         if: ${{ env.CI == 'true' }}
-        run: npx firebase-tools deploy --only functions:offers
+        run: npx firebase-tools deploy --only functions:offers --project petszone-arg
