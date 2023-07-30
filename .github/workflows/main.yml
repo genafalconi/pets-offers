@@ -27,4 +27,4 @@ jobs:
         run: npm install
 
       - name: Deploy
-        run: firebase deploy --project petszone-arg --token {{ $secret.FIREBASE_TOKEN }}
+        run: npx firebase-tools deploy --project petszone-arg
