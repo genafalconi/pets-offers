@@ -16,7 +16,7 @@ jobs:
 
       - name: Deploy Cloud Function
         id: deploy-function
-        uses: google-github-actions/deploy-cloud-functions@latest
+        uses: google-github-actions/deploy-cloud-functions@v1.0.1
         with:
           name: offers
           runtime: nodejs16
