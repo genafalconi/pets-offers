@@ -17,11 +17,17 @@ jobs:
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
+      - name: Debug Secret
+        run: |
+         echo "${{ secrets.SERVICE_ACCOUNT }}" > "$HOME"/firebase_key_debug.json
+         cat "$HOME"/firebase_key_debug.json
+
       - name: Authenticate with Firebase
         run: |
-          echo "${{ secrets.SERVICE_ACCOUNT }}" > "$HOME"/firebase_key.json
-          export GOOGLE_APPLICATION_CREDENTIALS="$HOME"/firebase_key.json
-          firebase use --add petszone-arg
+         echo "${{ secrets.SERVICE_ACCOUNT }}" > "$HOME"/firebase_key.json
+         export GOOGLE_APPLICATION_CREDENTIALS="$HOME"/firebase_key.json
+         echo "GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS"
+         firebase use --add petszone-arg
 
       - name: Download deps
         working-directory: src
