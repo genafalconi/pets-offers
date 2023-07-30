@@ -16,9 +16,9 @@ jobs:
 
       - name: Deploy Cloud Function
         id: deploy-function
-        uses: google-github-actions/deploy-cloud-functions@v0.1.0
+        uses: google-github-actions/deploy-cloud-functions@latest
         with:
           name: offers
           runtime: nodejs16
           project: petszone-arg
-          credentials: ${{ secrets.SERVICE_ACCOUNT }}
+          credentials: firebase-adminsdk-ehh6v@petszone-arg.iam.gserviceaccount.com
