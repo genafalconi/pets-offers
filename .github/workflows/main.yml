@@ -21,7 +21,6 @@ jobs:
         run: |
           echo "${{ secrets.SERVICE_ACCOUNT }}" > "$HOME"/firebase_key.json
           export GOOGLE_APPLICATION_CREDENTIALS="$HOME"/firebase_key.json
-          firebase use --add petszone-arg
 
       - name: Download deps
         working-directory: src
