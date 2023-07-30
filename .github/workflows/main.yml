@@ -1,4 +1,4 @@
-name: Deploy to Firebase Function via GitHub Action
+name: Deploy to Google Cloud Function via GitHub Action
 
 on:
   push:
@@ -14,28 +14,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Node.js
-        uses: actions/setup-node@v2
+      - name: Deploy Cloud Function
+        id: deploy-function
+        uses: google-github-actions/deploy-cloud-functions@v0.1.0
         with:
-          node-version: '14'
-
-      - name: Install gcloud CLI
-        run: |
-          export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
-          echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-          curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-          sudo apt-get update && sudo apt-get install -y google-cloud-sdk
-
-      - name: Authenticate with gcloud CLI
-        run: gcloud auth login 
-
-      - name: Set up Application Default Credentials (ADC) with service account impersonation
-        run: gcloud auth application-default login --impersonate-service-account=firebase-adminsdk-ehh6v@petszone-arg.iam.gserviceaccount.com
-
-      - name: Download deps
-        working-directory: src
-        run: npm install
-
-      - name: Deploy Function
-        if: ${{ env.CI == 'true' }}
-        run: npx firebase-tools deploy --only functions:offers --project petszone-arg
+          name: offers
+          runtime: nodejs16
+          project: petszone-arg
+          credentials: ${{ secrets.SERVICE_ACCOUNT }}
