@@ -20,5 +20,5 @@ jobs:
         with:
           name: offers
           runtime: nodejs16
-          project: petszone-arg
+          project_id: petszone-arg
           credentials: firebase-adminsdk-ehh6v@petszone-arg.iam.gserviceaccount.com
