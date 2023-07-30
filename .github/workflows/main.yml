@@ -19,7 +19,7 @@ jobs:
 
       - name: Authenticate with Firebase
         run: |
-          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}" > "$HOME"/firebase_key.json
+          echo "${{ secrets.SERVICE_ACCOUNT }}" > "$HOME"/firebase_key.json
           export GOOGLE_APPLICATION_CREDENTIALS="$HOME"/firebase_key.json
 
       - name: Download deps
@@ -27,4 +27,4 @@ jobs:
         run: npm install
 
       - name: Deploy
-        run: npx firebase-tools deploy --project petszone-arg
+        run: npx firebase-tools deploy --project petszone-arg --token ${{ secrets.FIREBASE_TOKEN }}
