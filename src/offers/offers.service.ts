@@ -12,23 +12,23 @@ export class OffersService {
     private readonly daysData: DaysData,
     @InjectModel(Offer.name)
     private readonly offerModel: Model<Offer>,
-  ) { }
+  ) {}
 
   @Cron('0 20 * * 4')
   async createOffers(): Promise<Offer[]> {
     const todayDate = new Date();
     const offersSaved: Offer[] = [];
     const dateToSearch = todayDate.toISOString().slice(0, 10);
-    const timeToSearch = todayDate.toLocaleTimeString().slice(0, 2);
+    const timeToSearch = parseInt(todayDate.toLocaleTimeString().slice(0, 2));
 
     const offerDocs = await this.offerModel.find({
       $or: [
         { date: { $gt: dateToSearch } },
         {
           date: dateToSearch,
-          from: { $gt: timeToSearch }
-        }
-      ]
+          from: { $gt: timeToSearch },
+        },
+      ],
     });
 
     if (offerDocs.length === 0) {
@@ -50,7 +50,7 @@ export class OffersService {
   async getOpenOffers(): Promise<Offer[]> {
     const todayDate = new Date();
     const dateToSearch = todayDate.toISOString().slice(0, 10);
-    const timeToSearch = todayDate.toLocaleTimeString().slice(0, 2);
+    const timeToSearch = parseInt(todayDate.toLocaleTimeString().slice(0, 2));
 
     const offerDocs = await this.offerModel
       .find({
@@ -58,9 +58,9 @@ export class OffersService {
           { date: { $gt: dateToSearch } },
           {
             date: dateToSearch,
-            from: { $gt: timeToSearch }
+            from: { $gt: timeToSearch },
           },
-        ]
+        ],
       })
       .sort({ date: 1 });
 
@@ -76,16 +76,16 @@ export class OffersService {
   async disablePastOffers() {
     const todayDate = new Date();
     const dateToSearch = todayDate.toISOString().slice(0, 10);
-    const timeToSearch = todayDate.toLocaleTimeString().slice(0, 2);
+    const timeToSearch = parseInt(todayDate.toLocaleTimeString().slice(0, 2));
 
     const offerDocs = await this.offerModel.find({
       $or: [
         { date: { $lt: dateToSearch } },
         {
           date: dateToSearch,
-          from: { $lt: timeToSearch }
-        }
-      ]
+          from: { $lt: timeToSearch },
+        },
+      ],
     });
 
     for (const offer of offerDocs) {

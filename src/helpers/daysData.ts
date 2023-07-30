@@ -28,7 +28,7 @@ export default class DaysData {
     const nextMondayString = nextMonday.toISOString().slice(0, 10);
     const nextWednesdayString = nextWednesday.toISOString().slice(0, 10);
     const nextFridayString = nextFriday.toISOString().slice(0, 10);
-    
+
     return {
       monday: nextMondayString,
       wednesday: nextWednesdayString,
@@ -44,21 +44,30 @@ export default class DaysData {
 
     this.days.map((elem) => {
       if (elem.weekday === 'lunes') {
-        if (elem.date !== todayString || (elem.date === todayString && elem.from > todayHour)) {
+        if (
+          elem.date !== todayString ||
+          (elem.date === todayString && elem.from > todayHour)
+        ) {
           elem.date = nextDays.monday;
         }
       }
       if (elem.weekday === 'miercoles') {
-        if (elem.date !== todayString || (elem.date === todayString && elem.from > todayHour)) {
+        if (
+          elem.date !== todayString ||
+          (elem.date === todayString && elem.from > todayHour)
+        ) {
           elem.date = nextDays.wednesday;
         }
       }
       if (elem.weekday === 'viernes') {
-        if (elem.date !== todayString || (elem.date === todayString && elem.from > todayHour)) {
+        if (
+          elem.date !== todayString ||
+          (elem.date === todayString && elem.from > todayHour)
+        ) {
           elem.date = nextDays.friday;
         }
       }
     });
-    return this.days
+    return this.days;
   }
 }

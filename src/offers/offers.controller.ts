@@ -2,6 +2,7 @@ import { Controller, Get, Inject, Post, UseGuards } from '@nestjs/common';
 import { DocumentData } from 'firebase-admin/firestore';
 import { FirebaseAuthGuard } from 'src/firebase/firebase.auth.guard';
 import { OffersService } from './offers.service';
+import { Offer } from 'src/schemas/offers.schema';
 
 @UseGuards(FirebaseAuthGuard)
 @Controller('offers')
@@ -12,12 +13,12 @@ export class OffersController {
   ) {}
 
   @Post('/new')
-  async createOffers(): Promise<DocumentData> {
+  async createOffers(): Promise<Offer[]> {
     return await this.offersService.createOffers();
   }
 
   @Get('/open')
-  async getOpenOffers(): Promise<DocumentData> {
+  async getOpenOffers(): Promise<Offer[]> {
     return await this.offersService.getOpenOffers();
   }
 }
