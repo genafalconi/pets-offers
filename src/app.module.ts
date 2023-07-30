@@ -3,7 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { OffersModule } from './offers/offers.module';
 import { ScheduleModule } from '@nestjs/schedule';
-import { Connection } from 'mongoose';
 
 @Module({
   imports: [
@@ -18,10 +17,6 @@ import { Connection } from 'mongoose';
         maxPoolSize: 30,
         retryAttempts: 2,
         retryDelay: 1000,
-        connectionFactory: (connection: Connection) => {
-          connection.plugin(require('mongoose-autopopulate'));
-          return connection;
-        }
       }),
     }),
     OffersModule,
@@ -30,4 +25,4 @@ import { Connection } from 'mongoose';
   controllers: [],
   providers: [],
 })
-export class AppModule { }
+export class AppModule {}
