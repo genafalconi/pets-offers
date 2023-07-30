@@ -1,24 +1,15 @@
-name: Deploy to Google Cloud Function via GitHub Action
-
+name: Deploy the main branch
 on:
   push:
     branches:
       - main
-
-env:
-  CI: true
-
 jobs:
-  build_and_deploy:
+  main:
+    name: Deploy to Firebase
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Deploy Cloud Function
-        id: deploy-function
-        uses: google-github-actions/deploy-cloud-functions@v1.0.1
-        with:
-          name: offers
-          runtime: nodejs16
-          project_id: petszone-arg
-          credentials: firebase-adminsdk-ehh6v@petszone-arg.iam.gserviceaccount.com
+    - uses: actions/checkout@v2
+    - uses: jsryudev/deploy-firebase-functions@v0.0.2
+      env:
+        FIREBASE_TOKEN: ${{ secrets.SERVICE_ACCOUNT }}
+        FIREBASE_PROJECT: petszone-arg
