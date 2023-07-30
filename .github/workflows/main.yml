@@ -20,6 +20,6 @@ jobs:
       - name: Deploy Function
         if: ${{ env.CI == 'true' }}
         run: |
-          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}" > "$HOME"/firebase_key.json
+          echo "${{ secrets.SERVICE_ACCOUNT }}" > "$HOME"/firebase_key.json
           export GOOGLE_APPLICATION_CREDENTIALS="$HOME"/firebase_key.json
           npx firebase-tools deploy --only functions:offers --project petszone-arg
