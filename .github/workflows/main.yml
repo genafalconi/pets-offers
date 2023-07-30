@@ -1,29 +1,15 @@
-name: Deploy Cloud Function
+name: Deploy the Cloud Functions
 on:
   push:
-    branches: [ main ]
-env:
-  PROJECT: mkdevyoutube
-
+    branches:
+      - main
 jobs:
-  build:
+  main:
+    name: Deploy to Firebase
     runs-on: ubuntu-latest
     steps:
-
-      - uses: actions/checkout@v2
-
-      - name: Setup GCP Service Account
-        uses: google-github-actions/setup-gcloud@latest
-        with:
-          project_id: ${{env.PROJECT_ID}}
-          service_account_key: ${{ secrets.PRIVATE_KEY_ID }}
-          export_default_credentials: true
-
-      - name: deploy cloud function
-        id: deploy
-        uses: google-github-actions/deploy-cloud-functions@main
-        with:
-          name: ${{ env.FUNCTION_NAME }}
-          runtime: nodejs16
-          project_id: ${{env.PROJECT_ID}}
-          entry_point: ${{ env.FUNCTION_NAME }}
+    - uses: actions/checkout@v2
+    - uses: jsryudev/deploy-firebase-functions@v0.0.2
+      env:
+        FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        FIREBASE_PROJECT: ${{ env.PROJECT_ID }}
