@@ -21,14 +21,4 @@ jobs:
         run: |
           echo "${{ secrets.SERVICE_ACCOUNT }}" > "$HOME"/firebase_key.json
           export GOOGLE_APPLICATION_CREDENTIALS="$HOME"/firebase_key.json
-
-      - name: Debug Service Account Key
-        run: cat $HOME/firebase_key.json
-        
-      - name: Download deps
-        working-directory: src
-        run: npm install
-
-      - name: Deploy Function
-        if: ${{ env.CI == 'true' }}
-        run: npx firebase-tools deploy --only functions:offers --project petszone-arg
+          npx firebase-tools deploy --only functions:offers --project petszone-arg
