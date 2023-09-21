@@ -4,22 +4,28 @@ import DaysData from 'src/helpers/daysData';
 import { InjectModel } from '@nestjs/mongoose';
 import { Offer } from 'src/schemas/offers.schema';
 import { Model } from 'mongoose';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class OffersService {
+  private dateIntance: DateTime
+  private dateManager: DateTime
+
   constructor(
     @Inject(DaysData)
     private readonly daysData: DaysData,
     @InjectModel(Offer.name)
     private readonly offerModel: Model<Offer>,
-  ) {}
+  ) {
+    this.dateIntance = DateTime.now().setZone('America/Buenos_Aires');
+    this.dateManager = this.dateIntance.set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+  }
 
   @Cron('0 20 * * 4')
   async createOffers(): Promise<Offer[]> {
-    const todayDate = new Date();
     const offersSaved: Offer[] = [];
-    const dateToSearch = todayDate.toISOString().slice(0, 10);
-    const timeToSearch = parseInt(todayDate.toLocaleTimeString().slice(0, 2));
+    const dateToSearch = this.dateManager.toISODate();
+    const timeToSearch = this.dateIntance.hour;
 
     const offerDocs = await this.offerModel.find({
       $or: [
@@ -31,7 +37,7 @@ export class OffersService {
       ],
     });
 
-    if (offerDocs.length === 0) {
+    if (offerDocs.length < 3) {
       const newDays = this.daysData.getNextDaysData();
       const newDaysPromise = newDays.map(async (elem) => {
         const offerWeek = new this.offerModel(elem);
@@ -48,9 +54,8 @@ export class OffersService {
   }
 
   async getOpenOffers(): Promise<Offer[]> {
-    const todayDate = new Date();
-    const dateToSearch = todayDate.toISOString().slice(0, 10);
-    const timeToSearch = parseInt(todayDate.toLocaleTimeString().slice(0, 2));
+    const dateToSearch = this.dateManager.toISODate();
+    const timeToSearch = this.dateIntance.hour;
 
     const offerDocs = await this.offerModel
       .find({
@@ -74,9 +79,8 @@ export class OffersService {
 
   @Cron(CronExpression.EVERY_DAY_AT_9PM)
   async disablePastOffers() {
-    const todayDate = new Date();
-    const dateToSearch = todayDate.toISOString().slice(0, 10);
-    const timeToSearch = parseInt(todayDate.toLocaleTimeString().slice(0, 2));
+    const dateToSearch = this.dateManager.toISODate();
+    const timeToSearch = this.dateIntance.hour;
 
     const offerDocs = await this.offerModel.find({
       $or: [
