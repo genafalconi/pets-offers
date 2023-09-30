@@ -1,3 +1,5 @@
+import { DateTime } from "luxon";
+
 export default class DaysData {
   private days = [
     { open: true, weekday: 'lunes', date: '', from: 14, to: 20 },
@@ -5,29 +7,23 @@ export default class DaysData {
     { open: true, weekday: 'viernes', date: '', from: 14, to: 20 },
   ];
 
+  private dateInstance = DateTime.now().setZone('America/Buenos_Aires');
+  private dateManager = this.dateInstance.set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+
   getNextDates() {
-    // Get today's date
-    const today = new Date();
-
     // Calculate the number of days until next Monday, Wednesday, and Friday
-    const daysUntilMonday = (1 + 7 - today.getDay()) % 7;
-    const daysUntilWednesday = (3 + 7 - today.getDay()) % 7;
-    const daysUntilFriday = (5 + 7 - today.getDay()) % 7;
+    const daysUntilMonday = (1 + 7 - this.dateManager.weekday) % 7;
+    const daysUntilWednesday = (3 + 7 - this.dateManager.weekday) % 7;
+    const daysUntilFriday = (5 + 7 - this.dateManager.weekday) % 7;
 
-    // Create Date objects for the next Monday, Wednesday, and Friday
-    const nextMonday = new Date(
-      today.getTime() + daysUntilMonday * 24 * 60 * 60 * 1000,
-    );
-    const nextWednesday = new Date(
-      today.getTime() + daysUntilWednesday * 24 * 60 * 60 * 1000,
-    );
-    const nextFriday = new Date(
-      today.getTime() + daysUntilFriday * 24 * 60 * 60 * 1000,
-    );
+    // Create DateTime objects for the next Monday, Wednesday, and Friday
+    const nextMonday = this.dateManager.plus({ days: daysUntilMonday });
+    const nextWednesday = this.dateManager.plus({ days: daysUntilWednesday });
+    const nextFriday = this.dateManager.plus({ days: daysUntilFriday });
 
-    const nextMondayString = nextMonday.toISOString().slice(0, 10);
-    const nextWednesdayString = nextWednesday.toISOString().slice(0, 10);
-    const nextFridayString = nextFriday.toISOString().slice(0, 10);
+    const nextMondayString = nextMonday.toISODate();
+    const nextWednesdayString = nextWednesday.toISODate();
+    const nextFridayString = nextFriday.toISODate();
 
     return {
       monday: nextMondayString,
@@ -38,36 +34,47 @@ export default class DaysData {
 
   getNextDaysData() {
     const nextDays = this.getNextDates();
-    const today = new Date();
-    const todayString = today.toISOString().slice(0, 10);
-    const todayHour = parseInt(today.toLocaleTimeString().slice(0, 2));
+    const today = this.dateInstance;
+    const todayString = today.toISODate();
+    const todayHour = today.hour;
 
-    this.days.map((elem) => {
+    const updatedDays = this.days.map((elem) => {
+      let updatedElem = { ...elem }; // Create a copy of the original day
+
       if (elem.weekday === 'lunes') {
         if (
           elem.date !== todayString ||
           (elem.date === todayString && elem.from > todayHour)
         ) {
-          elem.date = nextDays.monday;
+          updatedElem.date = nextDays.monday;
         }
-      }
-      if (elem.weekday === 'miercoles') {
+      } else if (elem.weekday === 'miercoles') {
         if (
           elem.date !== todayString ||
           (elem.date === todayString && elem.from > todayHour)
         ) {
-          elem.date = nextDays.wednesday;
+          updatedElem.date = nextDays.wednesday;
         }
-      }
-      if (elem.weekday === 'viernes') {
+      } else if (elem.weekday === 'viernes') {
         if (
           elem.date !== todayString ||
           (elem.date === todayString && elem.from > todayHour)
         ) {
-          elem.date = nextDays.friday;
+          updatedElem.date = nextDays.friday;
         }
+      }
+
+      return updatedElem;
+    });
+
+    const uniqueDays = [];
+    updatedDays.forEach((elem) => {
+      if (!uniqueDays.some((d) => d.weekday === elem.weekday)) {
+        uniqueDays.push(elem);
       }
     });
+
+    this.days = uniqueDays;
     return this.days;
   }
 }
