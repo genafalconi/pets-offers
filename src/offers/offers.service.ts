@@ -21,7 +21,7 @@ export class OffersService {
     this.dateManager = this.dateIntance.set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
   }
 
-  @Cron('0 20 * * 4')
+  @Cron('0 0 21 * THU *')
   async createOffers(): Promise<Offer[]> {
     const offersSaved: Offer[] = [];
     const dateToSearch = this.dateManager.toISODate();
@@ -40,9 +40,14 @@ export class OffersService {
     if (offerDocs.length < 3) {
       const newDays = this.daysData.getNextDaysData();
       const newDaysPromise = newDays.map(async (elem) => {
-        const offerWeek = new this.offerModel(elem);
-        const offerSaved = await offerWeek.save();
-        offersSaved.push(offerSaved);
+        const existDay = await this.offerModel.findOne({ date: elem.date })
+        if (!existDay) {
+          const offerWeek = new this.offerModel(elem);
+          const offerSaved = await this.offerModel.create(offerWeek);
+          offersSaved.push(offerSaved);
+        } else {
+          offersSaved.push(existDay)
+        }
       });
       await Promise.all(newDaysPromise);
 
@@ -77,26 +82,21 @@ export class OffersService {
     return offerDoc;
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_9PM)
+  @Cron('0 10 21 * THU *')
   async disablePastOffers() {
     const dateToSearch = this.dateManager.toISODate();
     const timeToSearch = this.dateIntance.hour;
 
-    const offerDocs = await this.offerModel.find({
-      $or: [
-        { date: { $lt: dateToSearch } },
-        {
-          date: dateToSearch,
-          from: { $lt: timeToSearch },
-        },
-      ],
-    });
+    await this.offerModel.updateMany(
+      {
+        $or: [
+          { date: { $lt: dateToSearch } },
+          { date: dateToSearch, from: { $lt: timeToSearch } },
+        ],
+      },
+      { $set: { open: false } }
+    );
 
-    for (const offer of offerDocs) {
-      await this.offerModel.updateOne(
-        { _id: offer._id },
-        { $set: { open: false } },
-      );
-    }
+    Logger.log('Offers disabled')
   }
 }
